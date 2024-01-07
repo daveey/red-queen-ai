@@ -92,7 +92,7 @@ def save_replays(policy_store_dir, save_dir, curriculum_file, task_to_assign=Non
     # Load the policies into the policy pool
     evaluator.policy_pool.update_policies({
         p.name: p.policy(
-            policy_args=[evaluator.buffers[0]], 
+            policy_args=[evaluator.buffers[0]],
             device=evaluator.device
         ) for p in list(policy_store._all_policies().values())
     })
@@ -282,7 +282,7 @@ if __name__ == "__main__":
     -t, --task-file: Task file to use for evaluation (Default: reinforcement_learning/eval_task_with_embedding.pkl)
     -i, --task-index: The index of the task to assign in the curriculum file (Default: None)
 
-    To generate replay from your checkpoints, put them together in policy_store_dir, run the following command, 
+    To generate replay from your checkpoints, put them together in policy_store_dir, run the following command,
     and replays will be saved under the replays/. The script will only use 1 environment.
     $ python evaluate.py -p <policy_store_dir>
 

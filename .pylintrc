@@ -24,7 +24,7 @@ disable=C0103, # invalid name
         W0511, # TODO/FIXME
 
 [INDENTATION]
-indent-string='  '
+indent-string='    '
 
 [MASTER]
 good-names-rgxs=^[_a-zA-Z][_a-z0-9]?$ # whitelist short variables

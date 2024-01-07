@@ -112,8 +112,8 @@ class StatPostprocessor(pufferlib.emulation.Postprocessor):
     """Postprocessing actions and metrics of Neural MMO.
        Process wandb/leader board stats, and save replays.
     """
-    def __init__(self, env, agent_id, eval_mode=False):
-        super().__init__(env, is_multiagent=True, agent_id=agent_id)
+    def __init__(self, env, is_multiagent, agent_id, eval_mode=False):
+        super().__init__(env, is_multiagent, agent_id=agent_id)
         self.eval_mode = eval_mode
         self._reset_episode_stats()
 

@@ -7,7 +7,6 @@ class Config:
     # Run a smaller config on your local machine
     local_mode = False  # Run in local mode
     # Track to run - options: reinforcement_learning, curriculum_generation
-    track = "rl"
     device = "cuda" if torch.cuda.is_available() else "cpu"
     #record_loss = False  # log all minibatch loss and actions, for debugging
 
@@ -40,22 +39,12 @@ class Config:
     clip_coef = 0.1  # PPO clip coefficient
 
     # Environment Args
-    num_agents = 128  # Number of agents to use for training
-    num_npcs = 256  # Number of NPCs to use for training
+    num_agents = 16  # Number of agents to use for training
     max_episode_length = 1024  # Number of steps per episode
-    death_fog_tick = None  # Number of ticks before death fog starts
     num_maps = 128  # Number of maps to use for training
     maps_path = "maps/train/"  # Path to maps to use for training
-    map_size = 128  # Size of maps to use for training
-    resilient_population = 0.2  # Percentage of agents to be resilient to starvation/dehydration
-    tasks_path = None  # Path to tasks to use for training
+    map_size = 64  # Size of maps to use for training
     eval_mode = False # Run the postprocessor in the eval mode
-    early_stop_agent_num = 8  # Stop the episode when the number of agents reaches this number
-    sqrt_achievement_rewards=False # Use the log of achievement rewards
-    heal_bonus_weight = 0.03
-    meander_bonus_weight = 0.02
-    explore_bonus_weight = 0.01
-    spawn_immunity = 20
 
     # Policy Args
     input_size = 256
