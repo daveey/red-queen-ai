@@ -22,6 +22,7 @@ disable=C0103, # invalid name
         W1203, # use logging instead of print
         W0221, # arguments differ from overridden method
         W0511, # TODO/FIXME
+        W0613, # unused argument
 
 [INDENTATION]
 indent-string='    '

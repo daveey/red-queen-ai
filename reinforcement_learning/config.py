@@ -1,5 +1,4 @@
 import argparse
-import os
 import time
 import torch
 
@@ -50,9 +49,6 @@ class Config:
     input_size = 256
     hidden_size = 256
     num_lstm_layers = 0  # Number of LSTM layers to use
-    task_size = 4096  # Size of task embedding
-    encode_task = True  # Encode task
-    attend_task = "none"  # Attend task - options: none, pytorch, nikhil
     attentional_decode = True  # Use attentional action decoder
     extra_encoders = True  # Use inventory and market encoders
 

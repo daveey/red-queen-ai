@@ -45,8 +45,7 @@ if __name__ == "__main__":
         learner_policy = policy.Baseline(
             envs.driver_env,
             input_size=args.input_size,
-            hidden_size=args.hidden_size,
-            task_size=args.task_size
+            hidden_size=args.hidden_size
         )
         return cleanrl.Policy(learner_policy)
 

@@ -1,13 +1,17 @@
 from argparse import Namespace
-import math
 
 import nmmo
 import pufferlib
 import pufferlib.emulation
 
-from leader_board import StatPostprocessor, calculate_entropy
+from leader_board import StatPostprocessor
 
-class Config(nmmo.config.Default):
+class Config(
+    nmmo.config.Small,
+    nmmo.config.Communication,
+    nmmo.config.Terrain,
+    nmmo.config.Combat
+    ):
     """Configuration for Neural MMO."""
 
     def __init__(self, args: Namespace):
@@ -22,10 +26,9 @@ class Config(nmmo.config.Default):
         self.PATH_MAPS = f"{args.maps_path}/{args.map_size}/"
         self.MAP_CENTER = args.map_size
 
-        self.COMMUNICATION_SYSTEM_ENABLED = False
-
 
 class Postprocessor(StatPostprocessor):
+    """
     def __init__(self, env, is_multiagent, agent_id, eval_mode=False):
         super().__init__(env, is_multiagent, agent_id, eval_mode)
 
@@ -37,8 +40,6 @@ class Postprocessor(StatPostprocessor):
     def observation_space(self):
         '''If you modify the shape of features, you need to specify the new obs space'''
         return super().observation_space
-
-    """
     def observation(self, obs):
         '''Called before observations are returned from the environment
 
