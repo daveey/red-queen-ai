@@ -4,7 +4,6 @@ import logging
 import os
 import time
 from types import SimpleNamespace
-from pathlib import Path
 from collections import defaultdict
 from dataclasses import asdict
 from itertools import cycle
@@ -207,7 +206,7 @@ def rank_policies(policy_store_dir, eval_curriculum_file, device):
 
     # Setup the evaluator. No training during evaluation
     evaluator = clean_pufferl.CleanPuffeRL(
-        device=torch.device(device),
+        # device=device,
         seed=args.seed,
         env_creator=environment.make_env_creator(args),
         env_creator_kwargs={},
@@ -228,7 +227,7 @@ def rank_policies(policy_store_dir, eval_curriculum_file, device):
     ranker_file = os.path.join(policy_store_dir, "ranker.pickle")
     # This is for quick viewing of the ranks, not for the actual ranking
     rank_txt = os.path.join(policy_store_dir, "ranking.txt")
-    with open(rank_txt, "w") as f:
+    with open(rank_txt, "w", encoding="utf-8") as f:
         pass
 
     results = defaultdict(list)
@@ -249,7 +248,7 @@ def rank_policies(policy_store_dir, eval_curriculum_file, device):
         )
 
         ratings = evaluator.policy_ranker.save_to_file(ranker_file)
-        with open(rank_txt, "a") as f:
+        with open(rank_txt, "a", encoding="utf-8") as f:
             f.write(
                 "\n\n"
                 + dataframe.round(2)
@@ -266,7 +265,7 @@ def rank_policies(policy_store_dir, eval_curriculum_file, device):
             if k == 'policy_id':
                 continue
             aggregated[k] = np.mean([asdict(e)[k] for e in res])
-        results[pol] = aggregated
+        results[pol] = [aggregated]
     print('Evaluation complete. Average stats:\n', results)
 
 

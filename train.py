@@ -1,6 +1,6 @@
 import os
 import logging
-import torch
+from types import SimpleNamespace
 
 from pufferlib.vectorization import Serial, Multiprocessing
 from pufferlib.policy_store import DirectoryPolicyStore
@@ -50,9 +50,9 @@ if __name__ == "__main__":
         return cleanrl.Policy(learner_policy)
 
     trainer = clean_pufferl.CleanPuffeRL(
-        device=torch.device(args.device),
+        # device=args.device,
         seed=args.seed,
-        env_creator=environment.make_env_creator(args),
+        env_creator=environment.make_env_creator(SimpleNamespace(**vars(args))),
         env_creator_kwargs={},
         agent_creator=make_policy,
         data_dir=run_dir,
@@ -60,7 +60,7 @@ if __name__ == "__main__":
         policy_store=policy_store,
         wandb_entity=args.wandb_entity,
         wandb_project=args.wandb_project,
-        wandb_extra_data=args,
+        wandb_extra_data=vars(args),
         checkpoint_interval=args.checkpoint_interval,
         vectorization=Serial if args.use_serial_vecenv else Multiprocessing,
         total_timesteps=args.train_num_steps,
@@ -71,7 +71,7 @@ if __name__ == "__main__":
         learning_rate=args.ppo_learning_rate,
         selfplay_learner_weight=args.learner_weight,
         selfplay_num_policies=args.max_opponent_policies + 1,
-        #record_loss = args.record_loss,
+        record_loss=True
     )
 
     while not trainer.done_training():
@@ -80,6 +80,6 @@ if __name__ == "__main__":
             update_epochs=args.ppo_update_epochs,
             bptt_horizon=args.bptt_horizon,
             batch_rows=args.ppo_training_batch_size // args.bptt_horizon,
-            clip_coef=args.clip_coef,
+            clip_coef=args.clip_coef
         )
     trainer.close()

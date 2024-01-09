@@ -23,6 +23,8 @@ disable=C0103, # invalid name
         W0221, # arguments differ from overridden method
         W0511, # TODO/FIXME
         W0613, # unused argument
+        W0612, # unused variable,
+        E0401, # unable to import
 
 [INDENTATION]
 indent-string='    '

@@ -1,4 +1,4 @@
-from argparse import Namespace
+from types import SimpleNamespace
 
 import nmmo
 import pufferlib
@@ -14,7 +14,7 @@ class Config(
     ):
     """Configuration for Neural MMO."""
 
-    def __init__(self, args: Namespace):
+    def __init__(self, args: SimpleNamespace):
         super().__init__()
 
         self.PROVIDE_ACTION_TARGETS = True
@@ -60,7 +60,7 @@ class Postprocessor(StatPostprocessor):
         return reward, done, info
 
 
-def make_env_creator(args: Namespace):
+def make_env_creator(args: SimpleNamespace):
     # TODO: Max episode length
     def env_creator():
         """Create an environment."""

@@ -1,5 +1,6 @@
 # pylint: disable=all
 # PufferLib's customized CleanRL PPO + LSTM implementation
+from email.policy import Policy
 from pdb import set_trace as T
 
 import os
@@ -19,6 +20,8 @@ import wandb
 from tqdm import tqdm
 
 import pufferlib
+from typing import Optional, Callable, TypeGuard
+from torch.nn.utils import clip_grad_norm_
 import pufferlib.emulation
 import pufferlib.frameworks.cleanrl
 import pufferlib.policy_pool
@@ -41,21 +44,7 @@ def unroll_nested_dict(d):
 
 @dataclass
 class CleanPuffeRL:
-    env_creator: callable = None
-    env_creator_kwargs: dict = None
-    agent: nn.Module = None
-    agent_creator: callable = None
-    agent_kwargs: dict = None
-
-    exp_name: str = os.path.basename(__file__)
-
-    data_dir: str = 'data'
-    record_loss: bool = False
-    checkpoint_interval: int = 1
-    seed: int = 1
-    torch_deterministic: bool = True
-    vectorization: ... = pufferlib.vectorization.Serial
-    device: str = torch.device("cuda") if torch.cuda.is_available() else "cpu"
+    env_creator_kwargs: Optional[dict] = None
     total_timesteps: int = 10_000_000
     learning_rate: float = 2.5e-4
     num_buffers: int = 1
@@ -64,16 +53,26 @@ class CleanPuffeRL:
     cpu_offload: bool = True
     verbose: bool = True
     batch_size: int = 2**14
+    wandb_entity: Optional[str] = None
+    wandb_project: Optional[str] = None
+    wandb_extra_data: Optional[dict] = None
+    env_creator: Optional[Callable] = None
+    agent = None
+    agent_creator: Optional[Callable] = None
+    agent_kwargs: Optional[dict] = None
     policy_store: pufferlib.policy_store.PolicyStore = None
     policy_ranker: pufferlib.policy_ranker.PolicyRanker = None
-
     policy_pool: pufferlib.policy_pool.PolicyPool = None
     policy_selector: pufferlib.policy_ranker.PolicySelector = None
+    data_dir: Optional[str] = None
+    seed: int = 0
+    vectorization: Optional[Callable] = pufferlib.vectorization.Multiprocessing
+    checkpoint_interval: int = 1000
+    exp_name: str = "default"
+    record_loss: bool = False
+    torch_deterministic: bool = False
+    device = "cpu"
 
-    # Wandb
-    wandb_entity: str = None
-    wandb_project: str = None
-    wandb_extra_data: dict = None
 
     # Selfplay
     selfplay_learner_weight: float = 1.0
@@ -219,7 +218,9 @@ class CleanPuffeRL:
                 self.batch_size + 1, *self.buffers[0].single_observation_space.shape
             ).to("cpu" if self.cpu_offload else self.device),
             actions=torch.zeros(
-                self.batch_size + 1, *self.buffers[0].single_action_space.shape, dtype=int
+                self.batch_size + 1,
+                *self.buffers[0].single_action_space.shape,
+                dtype=torch.int
             ).to(self.device),
             logprobs=torch.zeros(self.batch_size + 1).to(self.device),
             rewards=torch.zeros(self.batch_size + 1).to(self.device),
@@ -242,6 +243,8 @@ class CleanPuffeRL:
             self.action_file = os.path.join(self.data_dir, "actions.txt")
             with open(self.action_file, "w") as f:
                 pass
+
+        import wandb.util
 
         if self.wandb_entity is not None:
             self.wandb_run_id = self.wandb_run_id or wandb.util.generate_id()
@@ -477,6 +480,15 @@ class CleanPuffeRL:
         # assert self.num_steps % bptt_horizon == 0, "num_steps must be divisible by bptt_horizon"
         allocated_torch = torch.cuda.memory_allocated(self.device)
         allocated_cpu = self.process.memory_info().rss
+        entropy_loss = np.float32(0)
+        approx_kl = np.float32(0)
+        old_approx_kl = np.float32(0)
+        clipfracs = []
+        pg_loss = np.float32(0)
+        v_loss = np.float32(0)
+        explained_var = np.float32(0)
+
+
 
         # Annealing the rate if instructed to do so.
         if anneal_lr:
@@ -614,7 +626,7 @@ class CleanPuffeRL:
 
                 self.optimizer.zero_grad()
                 loss.backward()
-                nn.utils.clip_grad_norm_(self.agent.parameters(), max_grad_norm)
+                clip_grad_norm_(self.agent.parameters(), max_grad_norm)
                 self.optimizer.step()
 
             if target_kl is not None:
